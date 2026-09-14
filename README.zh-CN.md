@@ -3,6 +3,8 @@
 [English](README.md) | **中文**
 
 多数据库 MCP 服务器，向 AI 工具（Claude Code 等）暴露统一的数据库操作能力。支持 MySQL、SQL Server、MongoDB、Elasticsearch、Oracle、Redis，每种数据库均可配置**多个数据源**。
+<img width="1384" height="506" alt="企业微信截图_17893718801180" src="https://github.com/user-attachments/assets/5c0f30d9-c43f-46f0-b513-a867c9509ad4" />
+
 
 ## 快速开始
 
