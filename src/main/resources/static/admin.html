@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP 数据源管理</title>
+<style>
+  :root { --bg:#f4f6f9; --card:#ffffff; --line:#d9dfe8; --txt:#1c2733; --mut:#5f6c7c;
+          --acc:#2563eb; --ok:#16a34a; --bad:#dc2626; --warn:#b45309; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+         font:14px/1.5 "Microsoft YaHei","PingFang SC","Segoe UI",sans-serif; }
+  .wrap { max-width:1280px; margin:0 auto; padding:22px; }
+  h1 { font-size:21px; margin:0 0 4px; }
+  .sub { color:var(--mut); margin-bottom:14px; }
+  .bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .bar input[type=password] { background:#fff; border:1px solid var(--line); color:var(--txt);
+        padding:6px 10px; border-radius:6px; width:220px; }
+  .pill { padding:2px 10px; border-radius:12px; font-size:12px; display:inline-block; }
+  .okbg{ background:#e9f7ef; color:var(--ok); border:1px solid #b7e0c6; }
+  .warnbg{ background:#fdf3e3; color:var(--warn); border:1px solid #f0d7a8; }
+  .badbg{ background:#fdecec; color:var(--bad); border:1px solid #f2c0c0; }
+  nav { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  nav button { background:#fff; border:1px solid var(--line); color:var(--txt);
+       padding:6px 16px; border-radius:8px; cursor:pointer; }
+  nav button.active { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+          padding:16px; margin-bottom:16px; box-shadow:0 1px 2px rgba(16,24,40,.04); }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; white-space:nowrap; }
+  td.url { font-family:Consolas,Monaco,monospace; font-size:12px; word-break:break-all; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .btn { border:1px solid var(--line); background:#fff; color:var(--txt); padding:4px 12px;
+         border-radius:6px; cursor:pointer; }
+  .btn:hover{ background:#f0f4fa; }
+  .btn.primary{ background:var(--acc); border-color:var(--acc); color:#fff; }
+  .btn.primary:hover{ filter:brightness(1.06); background:var(--acc); }
+  .btn.danger{ color:var(--bad); border-color:#f0c4c4; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  form .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; }
+  label { display:block; color:var(--mut); font-size:12px; margin-bottom:3px; }
+  input[type=text],input[type=password],input[type=number],select {
+      width:100%; background:#fff; border:1px solid var(--line); color:var(--txt);
+      padding:6px 9px; border-radius:6px; }
+  input:disabled{ background:#eef1f5; color:var(--mut); }
+  .result { font-size:12px; }
+  .result.ok{ color:var(--ok);} .result.bad{ color:var(--bad);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MCP 数据源管理</h1>
+  <div class="sub">配置写入 <code>mcp-config.env</code>（多数据源格式）。已启用类型的新增/修改/删除即时热生效。</div>
+
+  <div class="bar">
+    <span id="writable" class="pill">加载中…</span>
+    <input type="password" id="token" placeholder="管理口令 X-Admin-Token（未设置时写被禁用）">
+    <span class="sub" id="stateNote"></span>
+  </div>
+
+  <nav id="nav"></nav>
+  <div id="gmsg"></div>
+  <div id="main"></div>
+</div>
+
+<script>
+const SCHEMA = {
+  jdbc:[
+    {k:'url',label:'JDBC URL',type:'text',req:true,ph:'jdbc:mysql://host:3306/db'},
+    {k:'username',label:'用户名',type:'text'},
+    {k:'password',label:'密码',type:'password',ph:'新增必填；编辑留空=保留原密码'},
+    {k:'description',label:'描述',type:'text'},
+    {k:'readOnly',label:'只读',type:'bool',def:true}
+  ],
+  mongodb:[
+    {k:'uri',label:'URI（可选）',type:'text',ph:'mongodb://host:27017'},
+    {k:'database',label:'默认库（可选）',type:'text'},
+    {k:'host',label:'主机',type:'text',def:'localhost'},
+    {k:'port',label:'端口',type:'num',def:27017},
+    {k:'username',label:'用户名',type:'text'},
+    {k:'password',label:'密码',type:'password',ph:'留空=保留原密码'},
+    {k:'description',label:'描述',type:'text'},
+    {k:'readOnly',label:'只读',type:'bool',def:true}
+  ],
+  elasticsearch:[
+    {k:'host',label:'主机',type:'text',req:true},
+    {k:'port',label:'端口',type:'num',def:9200},
+    {k:'username',label:'用户名',type:'text'},
+    {k:'password',label:'密码',type:'password',ph:'留空=保留原密码'},
+    {k:'apiKey',label:'API Key（可选）',type:'password',ph:'留空=保留原 API Key'},
+    {k:'ssl',label:'SSL',type:'bool',def:false},
+    {k:'description',label:'描述',type:'text'},
+    {k:'readOnly',label:'只读',type:'bool',def:true}
+  ],
+  redis:[
+    {k:'host',label:'主机',type:'text',req:true,def:'localhost'},
+    {k:'port',label:'端口',type:'num',def:6379},
+    {k:'password',label:'密码',type:'password',ph:'留空=保留原密码'},
+    {k:'description',label:'描述',type:'text'},
+    {k:'readOnly',label:'只读',type:'bool',def:true}
+  ]
+};
+
+let state=null, currentType=null, editingName=null;
+
+async function api(path, opts){ const r=await fetch(path,opts); return r.json().catch(()=>({})); }
+function headers(json){ const h={}; if(json)h['Content-Type']='application/json';
+  const t=document.getElementById('token').value.trim(); if(t)h['X-Admin-Token']=t; return h; }
+
+async function loadState(){
+  state=await api('/admin/api/state');
+  const w=state.writable, el=document.getElementById('writable');
+  el.textContent=w?'写入可用（已设口令）':'只读模式（未设 MCP_ADMIN_TOKEN）';
+  el.className='pill '+(w?'okbg':'warnbg');
+  document.getElementById('stateNote').textContent=state.note||'';
+  renderNav();
+  // 保存/删除后重绘当前标签内容，并停留在当前类型；类型不存在则回第一个
+  if(currentType && state.types.some(t=>t.type===currentType)){ renderMain(); }
+  else if(state.types.length){ select(state.types[0].type); }
+}
+function renderNav(){
+  const nav=document.getElementById('nav'); nav.innerHTML='';
+  state.types.forEach(t=>{
+    const b=document.createElement('button');
+    b.textContent=t.label+(t.enabled?'':'（停用）');
+    b.className=t.type===currentType?'active':'';
+    b.onclick=()=>select(t.type);
+    nav.appendChild(b);
+  });
+}
+function select(type){ currentType=type; editingName=null; renderNav(); renderMain(); }
+function typeItem(){ return state.types.find(t=>t.type===currentType); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderMain(){
+  const t=typeItem(); const m=document.getElementById('main');
+  const def = t.defaultName||'';
+  m.innerHTML=`<div class="card">
+    <div class="bar" style="margin-bottom:8px">
+      <b>${t.label}</b>
+      <span class="pill ${t.enabled?'okbg':'warnbg'}">${t.enabled?'已启用':'未启用（改动需重启生效）'}</span>
+      <span class="sub">默认数据源：${def||'（取第一个）'}</span>
+      <button class="btn" onclick="testAll()">检测全部</button>
+    </div>
+    <table><thead><tr><th>名称</th><th>连接</th><th>描述</th><th>只读</th><th>检测</th><th style="width:230px">操作</th></tr></thead>
+    <tbody>${t.datasources.map(dsRow).join('')||'<tr><td colspan="6" style="color:var(--mut)">暂无数据源</td></tr>'}</tbody></table>
+    <div style="margin-top:12px"><button class="btn primary" onclick="newForm()">＋ 新增数据源</button></div>
+  </div>
+  <div class="card" id="formCard" style="display:none">
+    <h3 style="margin:0 0 8px" id="formTitle"></h3>
+    <div class="sub" id="formHint"></div>
+    <div id="formMsg"></div>
+    <div id="formArea"></div>
+  </div>
+  <div id="msg"></div>`;
+}
+function dsRow(d){
+  const conn = d.url || (d.host + ':' + d.port) || '';
+  const isDef = currentTypeNameIs(d);
+  return `<tr id="row-${d.name}">
+    <td><b>${esc(d.name)}</b>${isDef?' <span class="pill okbg">默认</span>':''}</td>
+    <td class="url">${esc(conn)}</td>
+    <td>${esc(d.description||'')}</td>
+    <td>${d.readOnly?'true':'false'}</td>
+    <td><span class="result" id="res-${d.name}"></span></td>
+    <td><div class="row">
+      <button class="btn" onclick="editForm('${d.name}')">编辑</button>
+      <button class="btn" onclick="testOne('${d.name}')">检测</button>
+      <button class="btn danger" onclick="del('${d.name}')">删除</button>
+    </div></td></tr>`;
+}
+function currentTypeNameIs(d){ return state.types.find(t=>t.type===currentType).defaultName===d.name; }
+
+function fieldHtml(f,val){
+  if(f.type==='bool'){
+    const ck = f.k==='ssl' ? 'ssl' : 'readOnly';
+    const v = ck==='ssl' ? !!(val) : !(val===false);
+    return `<div><label>${ck==='ssl'?'SSL':'只读 readOnly'}</label>
+      <select data-k="${ck}"><option value="true"${v?' selected':''}>true</option><option value="false"${!v?' selected':''}>false</option></select></div>`;
+  }
+  const value=val===undefined||val===null?'':val;
+  const ph=f.ph?` placeholder="${esc(f.ph)}"`:'';
+  return `<div><label>${f.label}${f.req?' <span style="color:var(--bad)">*</span>':''}</label>
+    <input type="${f.type==='num'?'number':f.type}" data-k="${f.k}" value="${esc(value)}"${ph}></div>`;
+}
+
+function newForm(){
+  editingName=null;
+  clearFormMsg();
+  document.getElementById('formTitle').textContent='＋ 新增数据源';
+  document.getElementById('formHint').textContent='填写连接信息，可先「检测当前配置」验证连接，再点保存（保存需要管理口令）。';
+  const card=document.getElementById('formCard'); card.style.display='block';
+  const schema=SCHEMA[typeItem().kind];
+  document.getElementById('formArea').innerHTML=`
+   <form onsubmit="save(event)">
+    <div class="grid">
+      ${fieldHtml({k:'name',label:'数据源名称',type:'text',req:true},'')}
+      ${schema.map(f=>fieldHtml(f,f.def)).join('')}
+    </div>
+    <div style="margin-top:14px" class="row">
+      <button type="submit" class="btn primary">保存</button>
+      <button type="button" class="btn" onclick="testCurrent()">检测当前配置</button>
+    </div>
+   </form>`;
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+  const nameEl=document.querySelector('#formArea input[data-k="name"]'); if(nameEl) nameEl.focus();
+}
+function editForm(name){
+  const d=typeItem().datasources.find(x=>x.name===name); if(!d)return;
+  editingName=name;
+  clearFormMsg();
+  document.getElementById('formTitle').textContent='编辑数据源：'+name;
+  document.getElementById('formHint').textContent='密码 / API Key 留空表示保留原值；保存需要管理口令。';
+  const card=document.getElementById('formCard'); card.style.display='block';
+  const schema=SCHEMA[typeItem().kind];
+  let inner=`<div class="grid">
+     <div><label>数据源名称</label><input data-k="name" value="${esc(name)}" disabled></div>`;
+  schema.forEach(f=>{ inner+=fieldHtml(f, d[f.k]); });
+  inner+=`</div>
+    <div style="margin-top:14px" class="row">
+      <button class="btn primary" onclick="saveEdit()">保存</button>
+      <button class="btn" onclick="testCurrent()">检测当前配置</button>
+      <button class="btn" onclick="newForm()">取消</button>
+    </div>`;
+  document.getElementById('formArea').innerHTML=`<form onsubmit="saveEdit(event)">${inner}</form>`;
+}
+function collectFields(){
+  const vals={};
+  document.querySelectorAll('#formArea [data-k]').forEach(el=>{ vals[el.dataset.k]=el.value; });
+  return vals;
+}
+
+async function testPayloadFields(f){
+  return {type:typeItem().type, fields:f};
+}
+async function runTest(f, show){
+  const res=await api('/admin/api/test',{method:'POST',headers:headers(true),
+    body:JSON.stringify({type:typeItem().type, fields:f})});
+  if(show) formMsg(res.ok?'✓ '+esc(res.message):'✗ '+esc(res.message), res.ok?'okbg':'badbg');
+  return res;
+}
+async function testCurrent(){ const f=collectFields(); if(!f.name) f.name=editingName||'';
+  const res=await runTest(f,true); markFormResult(res); }
+function markFormResult(res){ /* reuse msg */ }
+
+async function testOne(name){
+  const el=document.getElementById('res-'+name); if(el) el.textContent='检测中…';
+  const d=typeItem().datasources.find(x=>x.name===name);
+  const res=await api('/admin/api/test',{method:'POST',headers:headers(true),
+     body:JSON.stringify({type:typeItem().type, fields:d})});
+  if(el){ el.textContent=(res.ok?'✓ ':'✗ ')+(res.message||''); el.className='result '+(res.ok?'ok':'bad'); }
+}
+async function testAll(){
+  const t=typeItem();
+  let okN=0,badN=0;
+  for(const d of t.datasources){
+    const res=await api('/admin/api/test',{method:'POST',headers:headers(true),
+       body:JSON.stringify({type:t.type, fields:d})});
+    const el=document.getElementById('res-'+d.name);
+    if(el){ el.textContent=(res.ok?'✓ ':'✗ ')+(res.message||''); el.className='result '+(res.ok?'ok':'bad'); }
+    res.ok?okN++:badN++;
+  }
+  msg(`检测完成：成功 ${okN}，失败 ${badN}`, badN?'badbg':'okbg');
+}
+
+async function save(e){ if(e)e.preventDefault();
+  if(!state.writable){ return formMsg('只读模式：未配置 MCP_ADMIN_TOKEN，无法保存。请在 mcp-config.env 或环境变量配置后重启。','badbg'); }
+  const f=collectFields(); const t=typeItem(); const schema=SCHEMA[t.kind];
+  if(!f.name||!f.name.trim()) return formMsg('请填写数据源名称','badbg');
+  if(t.kind==='jdbc' && !f.url) return formMsg('请填写 JDBC URL','badbg');
+  if((t.kind==='elasticsearch'||t.kind==='redis') && !f.host) return formMsg('请填写主机','badbg');
+  const req=schema.find(x=>x.req); if(req&&!f[req.k]) return formMsg('请填写必填项：'+req.label,'badbg');
+  await doSave(f);
+}
+async function saveEdit(e){ if(e)e.preventDefault(); await doSave(collectFields()); }
+async function doSave(fields){
+  if(!state.writable){ formMsg('只读模式：未配置 MCP_ADMIN_TOKEN，无法保存。请在 mcp-config.env 或环境变量配置后重启。','badbg'); return; }
+  setFormBusy(true);          // 防重复点击
+  try{
+    const res=await api('/admin/api/datasource',{method:'POST',headers:headers(true),
+        body:JSON.stringify({type:typeItem().type, fields:fields})});
+    if(!res || res.ok!==true){
+      const why=(res&&res.message)||'保存失败：服务器未返回成功（可能是管理口令无效或服务异常）';
+      formMsg('✗ '+esc(why),'badbg');
+      return;
+    }
+    msg('✓ '+(res.message||'保存成功')+(res.note?'  '+esc(res.note):''), res.hotApplied?'okbg':'warnbg');
+    await loadState();        // 刷新列表并停留在当前类型标签
+    newForm();                // 继续录入下一个
+  } finally {
+    setFormBusy(false);
+  }
+}
+
+function setFormBusy(busy){
+  const card=document.getElementById('formCard'); if(!card) return;
+  card.querySelectorAll('button').forEach(b=>{
+    if(b.disabled===busy) return;
+    b.disabled=busy;
+    if(b.classList.contains('primary')) b.textContent=busy?'保存中…':'保存';
+  });
+}
+async function del(name){
+  if(!confirm('确认删除数据源 '+name+' ？')) return;
+  if(!state.writable){ return msg('只读模式：未配置 MCP_ADMIN_TOKEN，无法删除。','badbg'); }
+  const res=await api('/admin/api/datasource?type='+typeItem().type+'&name='+encodeURIComponent(name),
+      {method:'DELETE',headers:headers(false)});
+  if(!res || res.ok!==true){ msg('✗ '+esc((res&&res.message)||'删除失败'),'badbg'); return; }
+  msg('✓ '+esc(res.message||'已删除'),'okbg');
+  await loadState();
+}
+
+function msg(html,cls){ const m=document.getElementById('gmsg'); m.innerHTML=html; m.className='pill '+(cls||''); }
+// 表单卡片内的就近提示（必填/保存结果等）；卡片不存在时回退到顶部
+function formMsg(html,cls){ const m=document.getElementById('formMsg'); if(!m){ msg(html,cls); return; } m.innerHTML=html; m.className='pill '+(cls||''); }
+function clearFormMsg(){ const m=document.getElementById('formMsg'); if(m){ m.innerHTML=''; m.className=''; } }
+document.getElementById('token').addEventListener('change',loadState);
+loadState();
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: turnright-database-mcp-server
+
+mcp:
+  transport: ${MCP_TRANSPORT:stdio}
+  port: ${MCP_PORT:8080}
+  admin-token: ${MCP_ADMIN_TOKEN:}
+
+server:
+  port: ${MCP_PORT:8080}
+
+# ============================================
+# 数据库配置（仅多数据源）
+# ============================================
+# 连接参数通过各数据源的 datasources 提供：
+#   - mcp-config.env 文件：DATABASE_DATASOURCES_0_NAME / _0_URL / ...（程序自动映射为
+#     database.mysql.datasources[0].name 等，System property 注入）
+#   - OS 环境变量（Docker -e / shell export）：需使用完整属性名，如
+#     DATABASE_MYSQL_DATASOURCES_0_URL（relaxed binding）
+# enabled=true 且 datasources 非空时才会注册对应类型的数据源。
+# ============================================
+database:
+  mysql:
+    enabled: ${MYSQL_ENABLED:false}
+    default-name: ${MYSQL_DEFAULT_DATASOURCE:}
+  sqlserver:
+    enabled: ${SQLSERVER_ENABLED:false}
+    default-name: ${SQLSERVER_DEFAULT_DATASOURCE:}
+  mongodb:
+    enabled: ${MONGODB_ENABLED:false}
+    default-name: ${MONGODB_DEFAULT_DATASOURCE:}
+  elasticsearch:
+    enabled: ${ES_ENABLED:false}
+    default-name: ${ES_DEFAULT_DATASOURCE:}
+  oracle:
+    enabled: ${ORACLE_ENABLED:false}
+    default-name: ${ORACLE_DEFAULT_DATASOURCE:}
+  redis:
+    enabled: ${REDIS_ENABLED:false}
+    default-name: ${REDIS_DEFAULT_DATASOURCE:}
+
+# ============================================
+# 多数据源 YAML 写法（可选，与 mcp-config.env / 环境变量等效）
+# ============================================
+# database:
+#   mysql:
+#     enabled: true
+#     default-name: primary
+#     datasources:
+#       - name: primary
+#         url: jdbc:mysql://prod:3306/main
+#         username: user
+#         password: pass
+#       - name: analytics
+#         url: jdbc:mysql://analytics:3306/logs
+#         username: user
+#         password: pass
+
+logging:
+  level:
+    root: INFO
+    org.turnright: DEBUG

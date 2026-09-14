@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="All Tests" type="JUnit" factoryName="JUnit">
+    <module name="turnright-database-mcp-server" />
+    <option name="PACKAGE_NAME" value="" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="directory" />
+    <option name="VM_PARAMETERS" value="-ea" />
+    <option name="PARAMETERS" value="" />
+    <dir value="$PROJECT_DIR$/src/test/java" />
+    <pattern value="**/*Test.java" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.turnright.mysqlmcpserver.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+  </configuration>
+</component>

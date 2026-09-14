@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: turnright-mysql-mcp-server
+
+# MCP Transport configuration (stdio for testing)
+mcp:
+  transport: stdio
+  port: 8080
+
+# H2 in-memory database for testing
+database:
+  mysql:
+    default-name: primary
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+    description: Test H2 database
+    max-pool-size: 5
+    min-idle: 1
+    idle-timeout: 60000
+    connection-timeout: 10000
+
+# Disable other databases for testing
+  sqlserver:
+    default-name: primary
+    enabled: false
+  mongodb:
+    default-name: primary
+    enabled: false
+  elasticsearch:
+    default-name: primary
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    org.turnright: DEBUG
