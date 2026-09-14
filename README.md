@@ -9,6 +9,10 @@
 **English** | [中文](README.zh-CN.md)
 
 A multi-database [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI tools — Claude Code, Claude Desktop, or any MCP-compatible client — a unified interface to **MySQL, SQL Server, MongoDB, Elasticsearch, Oracle and Redis**, with **multi-datasource** support for every engine.
+
+一个多数据库模型上下文协议（MCP）服务器，为AI工具——如Claude Code、Claude Desktop或任何兼容MCP的客户端——提供统一接口，连接MySQL、SQL Server、MongoDB、Elasticsearch、Oracle和Redis，并支持每种引擎的多数据源。
+
+UI配置界面：
 <img width="1384" height="506" alt="企业微信截图_17893718801180" src="https://github.com/user-attachments/assets/99b2865f-98b3-4bc1-9fea-b2d26b3259d8" />
 
 
