@@ -14,7 +14,7 @@ server:
 # 数据库配置（仅多数据源）
 # ============================================
 # 连接参数通过各数据源的 datasources 提供：
-#   - mcp-config.env 文件：DATABASE_DATASOURCES_0_NAME / _0_URL / ...（程序自动映射为
+#   - mcp-config.env 文件：MYSQL_DATASOURCES_0_NAME / _0_URL / ...（程序自动映射为
 #     database.mysql.datasources[0].name 等，System property 注入）
 #   - OS 环境变量（Docker -e / shell export）：需使用完整属性名，如
 #     DATABASE_MYSQL_DATASOURCES_0_URL（relaxed binding）

@@ -193,7 +193,7 @@ java -Dlogging.level.org.turnright=DEBUG -jar app.jar
 
 **症状**: `SAFETY: Datasource is in read-only mode`
 
-**解决**: 将对应数据源设为 `DATABASE_DATASOURCES_0_READONLY=false`（谨慎），或改配其他可写数据源
+**解决**: 将对应数据源设为 `MYSQL_DATASOURCES_0_READONLY=false`（谨慎），或改配其他可写数据源
 
 ### 问题：Oracle 驱动缺失
 

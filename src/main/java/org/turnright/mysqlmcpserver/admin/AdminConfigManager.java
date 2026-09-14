@@ -702,7 +702,7 @@ public class AdminConfigManager {
             sb.append(adminTokenLine).append("\n");
         }
         sb.append("\n");
-        sb.append(jdbcSection("MYSQL_ENABLED", "MYSQL_DEFAULT_DATASOURCE", "DATABASE_DATASOURCES_",
+        sb.append(jdbcSection("MYSQL_ENABLED", "MYSQL_DEFAULT_DATASOURCE", "MYSQL_DATASOURCES_",
             mysqlProps.isEnabled(), mysqlProps.getDefaultName(), mysqlProps.getAllDatasourceConfigs(), JdbcRowMapper));
         sb.append("\n");
         sb.append(jdbcSection("SQLSERVER_ENABLED", "SQLSERVER_DEFAULT_DATASOURCE", "SQLSERVER_DATASOURCES_",

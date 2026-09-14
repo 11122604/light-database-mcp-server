@@ -49,12 +49,12 @@ Configuration uses the **multi-datasource format only** — one `<DB>_ENABLED` s
 
 ```bash
 MYSQL_ENABLED=true
-DATABASE_DATASOURCES_0_NAME=default
-DATABASE_DATASOURCES_0_URL=jdbc:mysql://localhost:3306/mydb
-DATABASE_DATASOURCES_0_USERNAME=root
-DATABASE_DATASOURCES_0_PASSWORD=secret
-DATABASE_DATASOURCES_0_DESCRIPTION=Primary MySQL
-DATABASE_DATASOURCES_0_READONLY=true
+MYSQL_DATASOURCES_0_NAME=default
+MYSQL_DATASOURCES_0_URL=jdbc:mysql://localhost:3306/mydb
+MYSQL_DATASOURCES_0_USERNAME=root
+MYSQL_DATASOURCES_0_PASSWORD=secret
+MYSQL_DATASOURCES_0_DESCRIPTION=Primary MySQL
+MYSQL_DATASOURCES_0_READONLY=true
 ```
 
 > `mcp-config.env` stores credentials and is listed in `.gitignore` — never commit it. Every datasource needs an explicit `NAME`; name it `default` when you only configure one.

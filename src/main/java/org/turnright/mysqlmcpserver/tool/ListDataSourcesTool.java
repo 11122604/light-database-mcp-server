@@ -167,7 +167,7 @@ public class ListDataSourcesTool implements McpToolHandler {
 
             if (!hasAnyDatasource) {
                 response.put("hint", "No datasources configured. Please configure at least one datasource in .env or application.yml before using database tools. " +
-                    "Examples: DATABASE_URL=jdbc:mysql://localhost:3306/mydb, MONGODB_ENABLED=true, etc.");
+                    "Examples: MYSQL_ENABLED=true, MYSQL_DATASOURCES_0_URL=jdbc:mysql://localhost:3306/mydb, MONGODB_ENABLED=true, etc.");
             }
 
             String jsonResult = objectMapper.writeValueAsString(response);

@@ -19,7 +19,7 @@ import javax.sql.DataSource;
  *
  * 注意：MySQL 现为可选配置
  * - 设置 MYSQL_ENABLED=true 来启用
- * - 配置 DATABASE_URL 或 DATABASE_DATASOURCES_*
+ * - 配置 MYSQL_DATASOURCES_N_*（如 MYSQL_DATASOURCES_0_URL）
  * - 未配置时不创建数据源，list_datasources 将返回提示信息
  */
 @Slf4j

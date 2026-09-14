@@ -134,8 +134,9 @@ public class TurnrightMysqlMcpServerApplication {
     /**
      * Normalize environment variable keys to Spring Boot property names
      * Maps config file keys to correct @ConfigurationProperties paths
+     * 包级可见，便于单元测试直接验证映射规则
      */
-    private static String normalizeKey(String key) {
+    static String normalizeKey(String key) {
         // MCP transport properties
         if (key.equals("MCP_TRANSPORT")) return "mcp.transport";
         if (key.equals("MCP_PORT")) return "mcp.port";
@@ -144,15 +145,9 @@ public class TurnrightMysqlMcpServerApplication {
         // MySQL properties (prefix: database.mysql)
         if (key.equals("MYSQL_ENABLED")) return "database.mysql.enabled";
         if (key.equals("MYSQL_DEFAULT_DATASOURCE")) return "database.mysql.default-name";
-        if (key.startsWith("DATABASE_DATASOURCES_")) {
-            // Multi-datasource: DATABASE_DATASOURCES_0_NAME -> database.mysql.datasources[0].name
+        if (key.startsWith("MYSQL_DATASOURCES_")) {
+            // Multi-datasource: MYSQL_DATASOURCES_0_NAME -> database.mysql.datasources[0].name
             return normalizeDatasourceKey(key, "database.mysql");
-        }
-        if (key.startsWith("DATABASE_")) {
-            String suffix = key.substring("DATABASE_".length()).toLowerCase();
-            // Handle readOnly -> read-only conversion
-            if (suffix.equals("readonly")) suffix = "read-only";
-            return "database.mysql." + suffix;
         }
 
         // SQL Server properties (prefix: database.sqlserver)
@@ -221,7 +216,7 @@ public class TurnrightMysqlMcpServerApplication {
 
     /**
      * Normalize multi-datasource indexed keys
-     * DATABASE_DATASOURCES_0_NAME -> database.mysql.datasources[0].name
+     * MYSQL_DATASOURCES_0_NAME -> database.mysql.datasources[0].name
      */
     private static String normalizeDatasourceKey(String key, String prefix) {
         // Pattern: <DB>_DATASOURCES_<N>_<FIELD>

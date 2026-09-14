@@ -15,12 +15,12 @@ cp .env.example mcp-config.env
 ```bash
 # 启用 + 第一个数据源（单源也需显式 NAME，建议命名 default）
 MYSQL_ENABLED=true
-DATABASE_DATASOURCES_0_NAME=default
-DATABASE_DATASOURCES_0_URL=jdbc:mysql://localhost:3306/mydb
-DATABASE_DATASOURCES_0_USERNAME=root
-DATABASE_DATASOURCES_0_PASSWORD=password
-DATABASE_DATASOURCES_0_DESCRIPTION=MySQL业务数据库
-DATABASE_DATASOURCES_0_READONLY=true
+MYSQL_DATASOURCES_0_NAME=default
+MYSQL_DATASOURCES_0_URL=jdbc:mysql://localhost:3306/mydb
+MYSQL_DATASOURCES_0_USERNAME=root
+MYSQL_DATASOURCES_0_PASSWORD=password
+MYSQL_DATASOURCES_0_DESCRIPTION=MySQL业务数据库
+MYSQL_DATASOURCES_0_READONLY=true
 ```
 
 ### 2. 启动服务
@@ -94,7 +94,7 @@ Stdio 与 HTTP 两种接入方式的完整 JSON 配置见 [README.zh-CN.md 的 C
 
 | 库 | 数据源前缀 | 可用字段 |
 |----|-----------|---------|
-| MySQL | `DATABASE_DATASOURCES_` | NAME, URL, USERNAME, PASSWORD, DESCRIPTION, READONLY, MAX_POOL_SIZE, MIN_IDLE, IDLE_TIMEOUT, CONNECTION_TIMEOUT |
+| MySQL | `MYSQL_DATASOURCES_` | NAME, URL, USERNAME, PASSWORD, DESCRIPTION, READONLY, MAX_POOL_SIZE, MIN_IDLE, IDLE_TIMEOUT, CONNECTION_TIMEOUT |
 | SQL Server | `SQLSERVER_DATASOURCES_` | NAME, URL, USERNAME, PASSWORD, DESCRIPTION, READONLY, MAX_POOL_SIZE, MIN_IDLE, IDLE_TIMEOUT, CONNECTION_TIMEOUT |
 | MongoDB | `MONGODB_DATASOURCES_` | NAME, URI, DATABASE, HOST, PORT, USERNAME, PASSWORD, DESCRIPTION, READONLY, MAX_POOL_SIZE, MIN_POOL_SIZE, MAX_IDLE_TIME_MS, MAX_CONNECTION_LIFE_TIME_MS |
 | Elasticsearch | `ES_DATASOURCES_` | NAME, HOST, PORT, USERNAME, PASSWORD, API_KEY, SSL, FINGERPRINT, DESCRIPTION, READONLY |
@@ -103,16 +103,16 @@ Stdio 与 HTTP 两种接入方式的完整 JSON 配置见 [README.zh-CN.md 的 C
 
 - `READONLY` 默认 `true` = 只读；`false` = 允许写入。写入类工具在只读数据源上会被拒绝。
 - 数值字段（连接池 / 超时）缺省使用默认值：JDBC 连接池 10/2（最大/最小空闲）、空闲 300000ms、连接 30000ms；MongoDB 100/10、空闲 60000ms、生命周期 300000ms；Redis 超时 2000ms、池 8/8/0。
-- MySQL 的数据源前缀是 `DATABASE_`（历史命名），与其他库的 `<DB>_DATASOURCES_` 形式不同，注意区分。
+- 各库统一使用 `<DB>_DATASOURCES_N_<FIELD>` 前缀（MySQL 即 `MYSQL_DATASOURCES_N_<FIELD>`）。
 
 ### 两种变量形式的区别（易错）
 
 | 使用方式 | 启用键 | 数据源字段 |
 |---------|--------|-----------|
-| `mcp-config.env` 文件 | `MYSQL_ENABLED` | `DATABASE_DATASOURCES_0_URL` |
+| `mcp-config.env` 文件 | `MYSQL_ENABLED` | `MYSQL_DATASOURCES_0_URL` |
 | OS 环境变量（Docker `-e` / `export`） | `DATABASE_MYSQL_ENABLED` | `DATABASE_MYSQL_DATASOURCES_0_URL` |
 
-> OS 环境变量不经过程序的文件解析，直接由 Spring 的宽松绑定（relaxed binding）映射到完整属性名；而 `mcp-config.env` 文件的键由程序自身归一化。**不要**在文件里写 `DATABASE_MYSQL_ENABLED`（会被映射成错误的属性路径）。
+> OS 环境变量不经过程序的文件解析，直接由 Spring 的宽松绑定（relaxed binding）映射到完整属性名；而 `mcp-config.env` 文件的键由程序自身归一化，请使用简写形式（`MYSQL_ENABLED`、`MYSQL_DATASOURCES_0_URL`），不要把 OS 环境变量的完整属性名写进文件。
 
 OS 环境变量的完整属性名前缀：
 
@@ -161,15 +161,15 @@ database:
 **MySQL 多数据源：**
 ```bash
 MYSQL_ENABLED=true
-DATABASE_DATASOURCES_0_NAME=primary
-DATABASE_DATASOURCES_0_URL=jdbc:mysql://prod:3306/main
-DATABASE_DATASOURCES_0_USERNAME=user
-DATABASE_DATASOURCES_0_PASSWORD=pass
+MYSQL_DATASOURCES_0_NAME=primary
+MYSQL_DATASOURCES_0_URL=jdbc:mysql://prod:3306/main
+MYSQL_DATASOURCES_0_USERNAME=user
+MYSQL_DATASOURCES_0_PASSWORD=pass
 
-DATABASE_DATASOURCES_1_NAME=analytics
-DATABASE_DATASOURCES_1_URL=jdbc:mysql://analytics:3306/logs
-DATABASE_DATASOURCES_1_USERNAME=user
-DATABASE_DATASOURCES_1_PASSWORD=pass
+MYSQL_DATASOURCES_1_NAME=analytics
+MYSQL_DATASOURCES_1_URL=jdbc:mysql://analytics:3306/logs
+MYSQL_DATASOURCES_1_USERNAME=user
+MYSQL_DATASOURCES_1_PASSWORD=pass
 
 MYSQL_DEFAULT_DATASOURCE=primary
 ```
