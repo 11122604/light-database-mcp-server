@@ -131,7 +131,7 @@ curl http://localhost:9000/mcp/health
 
 ### 可用工具
 
-工具按数据源启用状态动态注册，运行时可用 `list_datasources` 实时查看。完整清单见 [README 的 MCP 工具](../README.md#mcp-工具)，参数说明见 [USAGE.md 工具参数表](../USAGE.md#mcp-工具)。
+工具按数据源启用状态动态注册，运行时可用 `list_datasources` 实时查看。完整清单见 [README.zh-CN.md 的 MCP 工具](../README.zh-CN.md#mcp-工具)，参数说明见 [USAGE.md 工具参数表](../USAGE.md#mcp-工具)。
 
 ## 日志
 

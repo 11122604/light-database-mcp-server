@@ -62,7 +62,7 @@ Windows 使用 `start.bat [http|stdio] [端口]`，参数规则相同。
 
 ### 3. 接入 Claude Code
 
-Stdio 与 HTTP 两种接入方式的完整 JSON 配置见 [README.md 的 Claude Code 配置](README.md#claude-code-配置)。要点：数据库连接统一放 `mcp-config.env`，不要在 MCP 的 `env` 里传 `DATABASE_URL` 等旧单源变量（已移除）。
+Stdio 与 HTTP 两种接入方式的完整 JSON 配置见 [README.zh-CN.md 的 Claude Code 配置](README.zh-CN.md#claude-code-配置)。要点：数据库连接统一放 `mcp-config.env`，不要在 MCP 的 `env` 里传 `DATABASE_URL` 等旧单源变量（已移除）。
 
 ---
 
