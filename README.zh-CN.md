@@ -40,6 +40,18 @@ Windows 使用 `start.bat [http|stdio] [端口]`，参数规则相同。
 
 启动脚本按优先级查找 JAR：先 `target/turnright-database-mcp-server-0.0.1-SNAPSHOT.jar`，再脚本同目录的部署 JAR。
 
+**部署目录结构** —— 分发 jar 部署（非源码运行）时，把 jar、配置文件与两个启动脚本放在**同一目录**下：
+
+```
+deploy/
+├── turnright-database-mcp-server-0.0.1-SNAPSHOT.jar   # 构建产物
+├── mcp-config.env                                     # 数据源与传输配置
+├── start.sh                                           # Linux / macOS
+└── start.bat                                          # Windows
+```
+
+程序按当前工作目录（`user.dir`）查找 `mcp-config.env`，两个启动脚本会先切到自身所在目录再启动 Java。分开存放会导致配置被忽略，服务以"无任何数据源"启动，`list_datasources` 只返回提示。
+
 ## 传输模式
 
 | 模式 | 说明 |

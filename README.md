@@ -83,6 +83,18 @@ On Windows use `start.bat [http|stdio] [port]` with the same argument rules.
 
 The script looks for the JAR in `target/` first, then falls back to a deployment JAR placed next to it.
 
+**Deployment layout** — when you ship the jar instead of running from source, keep the jar, the config file and both launch scripts in the **same directory**:
+
+```
+deploy/
+├── turnright-database-mcp-server-0.0.1-SNAPSHOT.jar   # build output
+├── mcp-config.env                                     # datasource + transport config
+├── start.sh                                           # Linux / macOS
+└── start.bat                                          # Windows
+```
+
+The application resolves `mcp-config.env` against the current working directory (`user.dir`), and each script switches to its own directory before launching Java. Split them across directories and the config is silently ignored — the server starts with no datasources and `list_datasources` only returns a hint.
+
 ### 4. Connect your MCP client
 
 **stdio** — the client launches the process:

@@ -60,6 +60,22 @@ Windows 使用 `start.bat [http|stdio] [端口]`，参数规则相同。
 
 端口同理：`-p`/数字参数 > `-Dmcp.port` > `MCP_PORT` 环境变量 > 配置文件 `MCP_PORT` > 默认 8080。注意程序会同步设置 `server.port`，Spring 的 `application.yaml` 占位符不会被绕过。
 
+**部署目录结构**（打包后分发/部署时）：
+
+```
+deploy/
+├── turnright-database-mcp-server-0.0.1-SNAPSHOT.jar   # mvnw clean package 产物
+├── mcp-config.env                                     # 数据库连接与传输配置
+├── start.sh                                           # Linux / macOS 启动脚本
+└── start.bat                                          # Windows 启动脚本
+```
+
+> jar、`mcp-config.env`、`start.sh`、`start.bat` 必须放在**同一目录**下：
+> - 程序按当前工作目录（`user.dir`）查找 `mcp-config.env`；
+> - 两个启动脚本在自身所在目录查找 jar，并先切到该目录再启动 Java，所以从任意位置调用脚本都能读到同目录的配置。
+>
+> 分开存放会导致配置读不到，服务以"无任何数据源"启动（`list_datasources` 只返回提示信息）。
+
 ### 3. 接入 Claude Code
 
 Stdio 与 HTTP 两种接入方式的完整 JSON 配置见 [README.zh-CN.md 的 Claude Code 配置](README.zh-CN.md#claude-code-配置)。要点：数据库连接统一放 `mcp-config.env`，不要在 MCP 的 `env` 里传 `DATABASE_URL` 等旧单源变量（已移除）。

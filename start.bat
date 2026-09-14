@@ -8,6 +8,8 @@ REM   start.bat stdio      -> force stdio (overrides env)
 REM   start.bat http 9001  -> force HTTP + port 9001
 
 set SCRIPT_DIR=%~dp0
+REM 切到脚本所在目录：程序按当前工作目录（user.dir）查找 mcp-config.env
+cd /d "%~dp0"
 set MODE=
 set HAS_MODE=
 set PORT=
